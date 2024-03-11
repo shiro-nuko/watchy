@@ -36,14 +36,18 @@ void WatchyPokemon::drawWatchFace(){
     display.setFont(&FreeMonoBold7pt7b);
     display.setTextColor(GxEPD_BLACK);
 
-    int pkm1_id = int(randomDay() * 151);
-    int pkm2_id = int(randomHour() * 151);
+    int pkm1_id = int(randomDay(0) * 151);
+    bool pkm1_shiny = int(randomDay(8231) * 4096) == 0;
+    int pkm2_id = int(randomHour(0) * 151);
+    bool pkm2_shiny = int(randomHour(3872) * 4096) == 0;
 
     // PKM
     display.drawBitmap(10, 60, pokemon_back[pkm1_id], 80, 68, GxEPD_BLACK);
 
     display.setCursor(100, 90);
     display.print(pokemon_names[pkm1_id]);
+    if (pkm1_shiny)
+      display.print('*');
 
     display.setCursor(130, 100);
     #ifdef FR
@@ -63,6 +67,8 @@ void WatchyPokemon::drawWatchFace(){
 
     display.setCursor(20, 20);
     display.print(pokemon_names[pkm2_id]);
+    if (pkm2_shiny)
+      display.print('*');
 
     display.setCursor(50, 30);
     #ifdef FR
@@ -107,7 +113,7 @@ void WatchyPokemon::drawWatchFace(){
     display.print(currentTime.Minute);
 
     // CURSOR
-    int pos = int(randomMinute() * 4);
+    int pos = int(randomMinute(0) * 4);
     int posX = pos % 2;
     int posY = int(pos / 2);
     #ifdef FR
@@ -117,13 +123,15 @@ void WatchyPokemon::drawWatchFace(){
     #endif
 }
 
-double WatchyPokemon::randomMinute()
+double WatchyPokemon::randomMinute(uint32_t d)
 {
     uint32_t seed = currentTime.Year;
     seed = seed * 12 + currentTime.Month;
     seed = seed * 31 + currentTime.Day;
     seed = seed * 24 + currentTime.Hour;
     seed = seed * 60 + currentTime.Minute;
+    seed += d;
+    
 
     double v = pow(seed, 6.0 / 7.0);
     v *= sin(v) + 1;
@@ -131,12 +139,13 @@ double WatchyPokemon::randomMinute()
     return v - floor(v);
 }
 
-double WatchyPokemon::randomHour()
+double WatchyPokemon::randomHour(uint32_t d)
 {
     uint32_t seed = currentTime.Year;
     seed = seed * 12 + currentTime.Month;
     seed = seed * 31 + currentTime.Day;
     seed = seed * 24 + currentTime.Hour;
+    seed += d;
 
     double v = pow(seed, 6.0 / 7.0);
     v *= sin(v) + 1;
@@ -144,11 +153,12 @@ double WatchyPokemon::randomHour()
     return v - floor(v);
 }
 
-double WatchyPokemon::randomDay()
+double WatchyPokemon::randomDay(uint32_t d)
 {
     uint32_t seed = currentTime.Year;
     seed = seed * 12 + currentTime.Month;
     seed = seed * 31 + currentTime.Day;
+    seed += d;
 
     double v = pow(seed, 6.0 / 7.0);
     v *= sin(v) + 1;

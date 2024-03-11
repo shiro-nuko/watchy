@@ -19,9 +19,9 @@ class WatchyPokemon : public WatchySynced
     using WatchySynced::WatchySynced;
     public:
         void drawWatchFace();
-        double randomDay();
-        double randomHour();
-        double randomMinute();
+        double randomDay(uint32_t d);
+        double randomHour(uint32_t d);
+        double randomMinute(uint32_t d);
 };
 
 #endif
