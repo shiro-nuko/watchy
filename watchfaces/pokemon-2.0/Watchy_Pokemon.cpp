@@ -10,81 +10,96 @@ const char *pokemon_names[151] = {"BULBIZARRE","HERBIZARRE","FLORIZARRE","SALAME
 const char *pokemon_names[151] = {"BULBASAUR","IVYSAUR","VENUSAUR","CHARMANDER","CHARMELEON","CHARIZARD","SQUIRTLE","WARTORTLE","BLASTOISE","CATERPIE","METAPOD","BUTTERFREE","WEEDLE","KAKUNA","BEEDRILL","PIDGEY","PIDGEOTTO","PIDGEOT","RATTATA","RATICATE","SPEAROW","FEAROW","EKANS","ARBOK","PIKACHU","RAICHU","SANDSHREW","SANDSLASH","NIDORAN","NIDORINA","NIDOQUEEN","NIDORAN","NIDORINO","NIDOKING","CLEFAIRY","CLEFABLE","VULPIX","NINETALES","JIGGLYPUFF","WIGGLYTUFF","ZUBAT","GOLBAT","ODDISH","GLOOM","VILEPLUME","PARAS","PARASECT","VENONAT","VENOMOTH","DIGLETT","DUGTRIO","MEOWTH","PERSIAN","PSYDUCK","GOLDUCK","MANKEY","PRIMEAPE","GROWLITHE","ARCANINE","POLIWAG","POLIWHIRL","POLIWRATH","ABRA","KADABRA","ALAKAZAM","MACHOP","MACHOKE","MACHAMP","BELLSPROUT","WEEPINBELL","VICTREEBEL","TENTACOOL","TENTACRUEL","GEODUDE","GRAVELER","GOLEM","PONYTA","RAPIDASH","SLOWPOKE","SLOWBRO","MAGNEMITE","MAGNETON","FARFETCH'D","DODUO","DODRIO","SEEL","DEWGONG","GRIMER","MUK","SHELLDER","CLOYSTER","GASTLY","HAUNTER","GENGAR","ONIX","DROWZEE","HYPNO","KRABBY","KINGLER","VOLTORB","ELECTRODE","EXEGGCUTE","EXEGGUTOR","CUBONE","MAROWAK","HITMONLEE","HITMONCHAN","LICKITUNG","KOFFING","WEEZING","RHYHORN","RHYDON","CHANSEY","TANGELA","KANGASKHAN","HORSEA","SEADRA","GOLDEEN","SEAKING","STARYU","STARMIE","MR. MIME","SCYTHER","JYNX","ELECTABUZZ","MAGMAR","PINSIR","TAUROS","MAGIKARP","GYARADOS","LAPRAS","DITTO","EEVEE","VAPOREON","JOLTEON","FLAREON","PORYGON","OMANYTE","OMASTAR","KABUTO","KABUTOPS","AERODACTYL","SNORLAX","ARTICUNO","ZAPDOS","MOLTRES","DRATINI","DRAGONAIR","DRAGONITE","MEWTWO","MEW"};
 #endif
 
+#define SPRITE_W 72
+
+#define PKM1_UI_W 96
+#define PKM1_UI_H 16
+#define PKM1_UI_X 14
+#define PKM1_UI_Y 31
+#define PKM1_X 120
+#define PKM1_Y 6
+
+#define PKM2_UI_W 96
+#define PKM2_UI_H 26
+#define PKM2_UI_X 90
+#define PKM2_UI_Y 103
+#define PKM2_X 8
+#define PKM2_Y 62
+
+#define PKM3_UI_W 200
+#define PKM3_UI_H 58
+#define PKM3_UI_X 1
+#define PKM3_UI_Y 137
+
+#ifdef FR
+#define LVL_TXT ":N"
+#else
+#define LVL_TXT ":L"
+#endif
+
+#define MIN_VBAT 3.7
+#define MAX_VBAT 4.1
+#define INV_VBAT_DIF 2.5
+
+
 void WatchyPokemon::drawWatchFace(){
 
+#ifndef SIM
     readWorldTime();
+#endif
 
     //Steps
     if (currentTime.Hour == 0 && currentTime.Minute == 1)
     {
         sensor.resetStepCounter();
     }
-    uint32_t stepCount = sensor.getCounter();
+    uint32_t stepCount = int(sensor.getCounter() * .01);
 
     //Voltage
     float VBAT = getBatteryVoltage();
-    uint32_t voltage = (int)(100.0 * VBAT);
+    uint32_t bat_level = VBAT < MIN_VBAT ? 0 : (int)(100 * INV_VBAT_DIF * (VBAT - MIN_VBAT));
 
     //Save battery life
+#ifndef SIM
     WiFi.mode(WIFI_OFF);
     btStop();
+#endif
 
     // BG
     display.fillScreen(GxEPD_WHITE);
-    display.drawBitmap(0, 0, pokemon, DISPLAY_WIDTH, DISPLAY_HEIGHT, GxEPD_BLACK);
 
     display.setFont(&FreeMonoBold7pt7b);
     display.setTextColor(GxEPD_BLACK);
 
-    int pkm1_id = int(randomDay(0) * 151);
-    bool pkm1_shiny = int(randomDay(8231) * 4096) == 0;
-    int pkm2_id = int(randomHour(0) * 151);
-    bool pkm2_shiny = int(randomHour(3872) * 4096) == 0;
+    int pkm1_id = int(randomHour(0) * 151);
+    bool pkm1_shiny = int(randomHour(8231) * 4096) == 0;
+    int pkm2_id = int(randomDay(0) * 151);
+    bool pkm2_shiny = int(randomDay(3872) * 4096) == 0;
 
     // PKM
-    display.drawBitmap(10, 60, pokemon_back[pkm1_id], 80, 68, GxEPD_BLACK);
+    display.drawBitmap(PKM2_X, PKM2_Y, pokemon_back[pkm2_id], SPRITE_W, SPRITE_W, GxEPD_BLACK);
+    display.drawBitmap(PKM2_UI_X, PKM2_UI_Y, pokemon_2, PKM2_UI_W, PKM2_UI_H, GxEPD_BLACK);
 
-    display.setCursor(100, 90);
-    display.print(pokemon_names[pkm1_id]);
-    if (pkm1_shiny)
-      display.print('*');
+    display.setCursor(PKM2_UI_X + 10, PKM2_UI_Y - 11);
+    display.print(pokemon_names[pkm2_id]);
+    if (pkm2_shiny) {
+        display.print('*');
+    }
+      
 
-    display.setCursor(130, 100);
-    #ifdef FR
-    display.print(":N");
-    #else
-    display.print(":L");
-    #endif
-    display.print(voltage);
+    display.setCursor(PKM2_UI_X + 40, PKM2_UI_Y - 1);
+    display.print(LVL_TXT);
+    display.print(bat_level);
+
+    // TODO change "color" of bar
 
     for (int8_t i = 0; i < int(60 - (currentTime.Hour * 60 + currentTime.Minute) / 24); i++)
     {
-        display.drawBitmap(120 + i, 104, bar[i % 2], 8, 4, GxEPD_BLACK);
+        display.drawBitmap(PKM2_UI_X + 30 + i, PKM2_UI_Y + 3, bar[i % 2], 8, 4, GxEPD_BLACK);
     }
 
-    // ENEMY
-    display.drawBitmap(120, 10, pokemon_front[pkm2_id] , 80, 68, GxEPD_BLACK);
-
-    display.setCursor(20, 20);
-    display.print(pokemon_names[pkm2_id]);
-    if (pkm2_shiny)
-      display.print('*');
-
-    display.setCursor(50, 30);
-    #ifdef FR
-    display.print(":N");
-    #else
-    display.print(":L");
-    #endif
-    display.print(int(stepCount * .01));
-
-    for (int8_t i = 0; i < (60 - currentTime.Minute); i++)
-    {
-        display.drawBitmap(40 + i, 34, bar[i % 2], 8, 4, GxEPD_BLACK);
-    }
-
-    // DATE
-    display.setCursor(130, 120);
+    // DATE = PV
+    display.setCursor(PKM2_UI_X + 40, PKM2_UI_Y + 19);
     if(currentTime.Day < 10){
         display.print(' ');
     }
@@ -95,13 +110,31 @@ void WatchyPokemon::drawWatchFace(){
     }
     display.print(currentTime.Month);
 
+    // ENEMY
+    display.drawBitmap(PKM1_X, PKM1_Y, pokemon_front[pkm1_id] , SPRITE_W, SPRITE_W, GxEPD_BLACK);
+    display.drawBitmap(PKM1_UI_X, PKM1_UI_Y, pokemon_1, PKM1_UI_W, PKM1_UI_H, GxEPD_BLACK);
+
+    display.setCursor(PKM1_UI_X + 6, PKM1_UI_Y - 11);
+    display.print(pokemon_names[pkm1_id]);
+    if (pkm1_shiny) {
+        display.print('*');
+    }
+
+    display.setCursor(PKM1_UI_X + 36, PKM1_UI_Y - 1);
+    display.print(LVL_TXT);
+    display.print(stepCount);
+
+    for (int8_t i = 0; i < (60 - currentTime.Minute); i++)
+    {
+        display.drawBitmap(PKM1_UI_X + 26 + i, PKM1_UI_Y + 3, bar[i % 2], 8, 4, GxEPD_BLACK);
+    }
+
+    // BOTTOM
+    display.drawBitmap(PKM3_UI_X, PKM3_UI_Y, pokemon_3, PKM3_UI_W, PKM3_UI_H, GxEPD_BLACK);
+
     // HOUR
     display.setFont(&FreeMonoBold10pt7b);
-    #ifdef FR
-    display.setCursor(14, 165);
-    #else
-    display.setCursor(14, 165);
-    #endif
+    display.setCursor(PKM3_UI_X + 13, PKM3_UI_Y + 34);
     if(currentTime.Hour < 10){
         display.print('0');
     }
@@ -117,9 +150,9 @@ void WatchyPokemon::drawWatchFace(){
     int posX = pos % 2;
     int posY = int(pos / 2);
     #ifdef FR
-    display.drawBitmap(86 + posX * 59, 148 + posY * 20, cursor, 8, 9, GxEPD_BLACK);
+    display.drawBitmap(PKM3_UI_X + 85 + posX * 59, PKM3_UI_Y + 16 + posY * 20, cursor, 8, 9, GxEPD_BLACK);
     #else
-    display.drawBitmap(90 + posX * 61, 148 + posY * 20, cursor, 8, 9, GxEPD_BLACK);
+    display.drawBitmap(PKM3_UI_X + 89 + posX * 61, PKM3_UI_Y + 16 + posY * 20, cursor, 8, 9, GxEPD_BLACK);
     #endif
 }
 
