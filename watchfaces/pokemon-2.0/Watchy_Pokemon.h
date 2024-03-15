@@ -1,11 +1,11 @@
 #ifndef WATCHY_POKEMON_H
 #define WATCHY_POKEMON_H
 
-//#define SIM
-#define FR
+#define SIM
+//#define FR
 
 #ifdef SIM
-#include "../../Watchy.h"
+#include "..\..\Watchy.h"
 #else
 #include <Watchy.h>
 #include "wta.h"
@@ -26,14 +26,14 @@ class WatchyPokemon : public Watchy
 class WatchyPokemon : public WatchySynced
 #endif
 {
-    #ifndef SIM
+#ifndef SIM
     using WatchySynced::WatchySynced;
-    #endif
-    public:
-        void drawWatchFace();
-        double randomDay(uint32_t d);
-        double randomHour(uint32_t d);
-        double randomMinute(uint32_t d);
+#endif
+public:
+    void drawWatchFace();
+    double randomDay(uint32_t d);
+    double randomHour(uint32_t d);
+    double randomMinute(uint32_t d);
 };
 
 #endif
