@@ -3,6 +3,7 @@ __pycache__
 .idea
 *.bmp
 watchfaces/libraries
+!watchfaces/pokemon-2.0/**/*.bmp
 watchfaces/pokemon-2.0/pokemon-src
 !watchfaces/*/preview.bmp
 watchysim

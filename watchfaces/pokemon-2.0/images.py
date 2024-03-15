@@ -1,14 +1,30 @@
 from PIL import Image
 import os.path
 import math
+import sys
+import importlib 
 
-ROOT_DIR = f"{os.path.dirname(__file__)}/pokemon-src/main-sprites/yellow"
-FRONT_DIR = f"{ROOT_DIR}/gray"
-BACK_DIR = f"{ROOT_DIR}/back/gray"
+spec = importlib.util.spec_from_file_location("watchy-image-editor", f'{os.path.dirname(__file__)}/../../watchy-image-editor/__init__.py')
+WatchyImageEditorModule = importlib.util.module_from_spec(spec)
+sys.modules["watchy-image-editor"] = WatchyImageEditorModule
+spec = importlib.util.spec_from_file_location("watchy-image-editor.image", f'{os.path.dirname(__file__)}/../../watchy-image-editor/image.py')
+BmpImageModule = importlib.util.module_from_spec(spec)
+sys.modules["watchy-image-editor.image"] = BmpImageModule
+spec.loader.exec_module(BmpImageModule)
+
+BmpImage = getattr(BmpImageModule, "Image", None)
+
+UI_IMAGES = [("pokemon_1", 96, 16) , ("pokemon_2", 96, 26), ("pokemon_3", 200, 58)]
+UI_OTHER_IMAGES = [("bar_0", 8, 4), ("bar_1", 8, 4), ("cursor", 8, 9)]
+
+DIRS = ["red-blue", "red-green", "yellow"]
+
+CWD = os.path.dirname(__file__)
+ROOT_DIR = f"{CWD}/pokemon-src/main-sprites"
 
 COUNT = 151
 
-OUT_DIR = f"{os.path.dirname(__file__)}/pokemon-out"
+OUT_DIR = f"{CWD}/pokemon-out"
 
 WIDTH = 72
 HEIGHT = 72
@@ -94,11 +110,47 @@ def convert_back(im_src: Image.Image) -> Image.Image:
     return convert(im)
 
 if __name__ == '__main__':
-    for i in range(1, COUNT + 1):
-        with Image.open(f"{FRONT_DIR}/{i}.png") as im_src:
-            im_out = convert_front(im_src)
-            im_out.save(f"{OUT_DIR}/front_{i}.bmp")
-        
-        with Image.open(f"{BACK_DIR}/{i}.png") as im_src:
-            im_out = convert_back(im_src)
-            im_out.save(f"{OUT_DIR}/back_{i}.bmp")
+    for lang in ["en", "fr"]:
+        with open(f"{CWD}/ui_{lang}.h", mode='w') as f:
+            for name, width, height in UI_IMAGES:
+                im_bmp = BmpImage(name, width, height)
+                im_bmp.import_bmp(f"{lang}/{name}.bmp")
+                f.write(im_bmp.export_cpp()+"\n")
+
+    with open(f"{CWD}/ui_other.h", mode='w') as f:
+        for name, width, height in UI_OTHER_IMAGES:
+            im_bmp = BmpImage(name, width, height)
+            im_bmp.import_bmp(f"other/{name}.bmp")
+            f.write(im_bmp.export_cpp()+"\n")
+
+
+    try:
+        os.mkdir(f"{OUT_DIR}")
+    except:
+        pass
+    for sub in DIRS:
+        try:
+            os.mkdir(f"{OUT_DIR}/{sub}")
+        except:
+            pass
+        with open(f"{CWD}/pokemon_{sub.replace('-', '_')}.h", mode='w') as f:
+            for i in range(1, COUNT + 1):
+                try:
+                    with Image.open(f"{ROOT_DIR}/{sub}/gray/{i}.png") as im_src:
+                        im_out = convert_front(im_src)
+                        im_out.save(f"{OUT_DIR}/{sub}/front_{i}.bmp")
+                except:
+                    pass
+                im_bmp = BmpImage(f"front_{i}", WIDTH, HEIGHT)
+                im_bmp.import_bmp(f"{OUT_DIR}/{sub}/front_{i}.bmp")
+                f.write(im_bmp.export_cpp()+"\n")
+                    
+                try:
+                    with Image.open(f"{ROOT_DIR}/{sub}/back/gray/{i}.png") as im_src:
+                        im_out = convert_back(im_src)
+                        im_out.save(f"{OUT_DIR}/{sub}/back_{i}.bmp")
+                except:
+                    pass
+                im_bmp = BmpImage(f"back_{i}", WIDTH, HEIGHT)
+                im_bmp.import_bmp(f"{OUT_DIR}/back_{i}.bmp")
+                f.write(im_bmp.export_cpp()+"\n")
