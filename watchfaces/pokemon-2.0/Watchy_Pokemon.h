@@ -2,7 +2,7 @@
 #define WATCHY_POKEMON_H
 
 //#define FR
-#define SIM
+//#define SIM
 
 #ifdef SIM
 #include "..\..\Watchy.h"
@@ -14,9 +14,9 @@
 #include "FreeMonoBold10pt7b.h"
 #include "FreeMonoBold7pt7b.h"
 
-//#include "pokemon_yellow.h"
+#include "pokemon_yellow.h"
 //#include "pokemon_red_blue.h"
-#include "pokemon_red_green.h"
+//#include "pokemon_red_green.h"
 
 #include "ui_other.h"
 
