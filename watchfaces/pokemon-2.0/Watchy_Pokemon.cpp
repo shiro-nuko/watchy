@@ -38,9 +38,8 @@ const char *pokemon_names[151] = {"BULBASAUR","IVYSAUR","VENUSAUR","CHARMANDER",
 #endif
 
 #define MIN_VBAT 3.7
-#define MAX_VBAT 4.1
-#define INV_VBAT_DIF 2.5
-
+#define MAX_VBAT 4.28
+#define INV_VBAT_DIF 1.66
 
 void WatchyPokemon::drawWatchFace(){
 
