@@ -1,4 +1,4 @@
-# Klemek's Watchy
+# Klemek's Watchy (White Cat edition!)
 
 ## Watchfaces
 
