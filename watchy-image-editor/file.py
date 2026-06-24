@@ -39,7 +39,7 @@ class File:
         with open(self.path) as f:
             for line in f:
                 header = re.match(
-                    r"const unsigned char (\w+) \[\] PROGMEM \= \{",
+                    r"const\s+unsigned\s+char\s+(\w+)\s*\[\]\s*PROGMEM\s*=\s*\{",
                     line,
                 )
                 if header:
@@ -57,7 +57,7 @@ class File:
                         images += [current_image]
                         current_image.finalize()
                         current_image = None
-                comment_header = re.match(r"// '(\w+)', (\d+)x(\d+)px", line)
+                comment_header = re.match(r"//\s+'(\w+)',\s+(\d+)x(\d+)px", line)
                 if comment_header:
                     groups = comment_header.groups()
                     current_image = Image(groups[0], int(groups[1]), int(groups[2]))
